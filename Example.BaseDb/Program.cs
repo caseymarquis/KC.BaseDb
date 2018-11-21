@@ -42,7 +42,7 @@ namespace Example.BaseDb
     public class AppDbContext : BaseDbContext<AppDbContext>{
         private static string dbConnectionFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "ExampleApp", "db.txt");
         private static string dbConnectionEnvironmentVariable = "Data Source =$|-DBHOST-$|; Initial Catalog = $|-DBNAME-$|; Integrated Security = False; User ID = $|-DBUSER-$|; Password = $|-DBPASS-$|; MultipleActiveResultSets = True";
-        private static string hardCodedConnection = $"Data Source =.\\ESR; Initial Catalog = QAppExample; Integrated Security = False; User ID = euler; Password = 3.14159265358979323846264338327; MultipleActiveResultSets = True";
+        private static string hardCodedConnection = $"Data Source =.\\ESR; Initial Catalog = BaseDbExample; Integrated Security = False; User ID = euler; Password = 3.14159265358979323846264338327; MultipleActiveResultSets = True";
 
         public AppDbContext() : base("Example", BaseDbType.SqlServer, dbConnectionEnvironmentVariable, dbConnectionFilePath, hardCodedConnection, customDbSetup) {
         }
