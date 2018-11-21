@@ -6,17 +6,7 @@ It provides:
 * A static convenience function for migrating the database on app start.
 * Static convenience functions for accessing and disposing the database.
 * Static read/write locking if the underlying database is Sqlite.
-* All packages needed to run migrations in visual studio, and to access Postgres, SqlServer, and Sqlite databases. (If you need something outside of those)
-
-That's pretty much it, but 
-
-* AllProperties: All public properties which were not ignored with an attribute.
-* ValueAndStringProperties: Properties which are value and string types.
-* ValueAndStringDicts: Dictionary properties containing value and string types.
-* ValueAndStringIEnumerables: IEnumerable properties containing value and string types.
-* ClassProperties: Properties which are classes.
-* ClassDicts: Dictionary properties containing classes.
-* ClassIEnumerables: IEnumerable properties containing classes.
+* All packages needed to run migrations in visual studio, and to access Postgres, SqlServer, and Sqlite databases. (Other databases can be used with slightly more effort)
 
 ### Installing
 
