@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Casey Marquis</Authors>
+    <Company />
+    <PackageLicenseUrl>https://github.com/caseymarquis/KC.BaseDb/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/caseymarquis/KC.BaseDb</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/caseymarquis/KC.BaseDb</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.4" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.2" />
+  </ItemGroup>
+
+
+</Project>
