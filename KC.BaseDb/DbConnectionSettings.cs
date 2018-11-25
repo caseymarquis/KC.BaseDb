@@ -91,6 +91,12 @@ namespace KC.BaseDb {
                         cs = "";
                         success = false;
                     }
+                    else if (m_BaseDbType == BaseDbType.Postgres && cs.Contains("://")) {
+                        var uri = new Uri(cs);
+                        var userPass = uri.UserInfo.Split(':');
+                        //If the environment variable was in the style of heroku's user:pass@server:port/database, the interpret it:
+                        cs = $"Server={uri.Host};Port={uri.Port};Database={uri.LocalPath.Trim('/')};Userid={userPass[0]};Password={userPass[1]};SSL=true;SslMode=Require;";
+                    }
                 }
 
                 if (success == false) {
