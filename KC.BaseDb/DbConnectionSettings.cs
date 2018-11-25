@@ -108,7 +108,7 @@ namespace KC.BaseDb {
                     if (!File.Exists(connectionStringFilePath)) {
                         switch (baseDbType) {
                             case BaseDbType.Postgres:
-                                cs = hardCodedConnectionString ?? $"User ID=euler;Password=3.14159265358979323846264338327;Host=localhost;Port=5432;Database={appName};Pooling = true; Min Pool Size = 0; Max Pool Size = 100; Connection Lifetime = 0;";
+                                cs = hardCodedConnectionString ?? $"UserID=euler;Password=3.14159265358979323846264338327;Host=localhost;Port=5432;Database={appName};";
                                 break;
                             case BaseDbType.Sqlite:
                                 cs = hardCodedConnectionString ?? "Filename=" + Path.Combine(new FileInfo(connectionStringFilePath).DirectoryName, "db.sqlite");
