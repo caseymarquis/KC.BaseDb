@@ -95,7 +95,7 @@ namespace KC.BaseDb {
                         var uri = new Uri(cs);
                         var userPass = uri.UserInfo.Split(':');
                         //If the environment variable was in the style of heroku's user:pass@server:port/database, the interpret it:
-                        cs = $"Server={uri.Host};Port={uri.Port};Database={uri.LocalPath.Trim('/')};Userid={userPass[0]};Password={userPass[1]};SSL=true;SslMode=Require;";
+                        cs = $"Server={uri.Host};Port={uri.Port};Database={uri.LocalPath.Trim('/')};Userid={userPass[0]};Password={userPass[1]};SslMode=Require;";
                     }
                 }
 
