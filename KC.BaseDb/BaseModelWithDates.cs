@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace KC.BaseDb {
     public class BaseModelWithDates : BaseModel {
         public BaseModelWithDates() {
-            this.CreatedUtc = DateTime.UtcNow;
+            this.CreatedUtc = DateTimeOffset.Now;
             this.ModifiedUtc = CreatedUtc;
         }
 
-        public DateTime CreatedUtc { get; set; }
-        public DateTime ModifiedUtc { get; set; }
+        public DateTimeOffset CreatedUtc { get; set; }
+        public DateTimeOffset ModifiedUtc { get; set; }
     }
 }

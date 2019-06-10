@@ -13,7 +13,7 @@ namespace KC.BaseDb
         /// <summary>
         /// Because SQL Server has a limited date range.
         /// </summary>
-        public static DateTime InitDateTime => new DateTime(1899, 1, 1);
+        public static DateTimeOffset InitDateTime => new DateTime(1899, 1, 1);
 
         private static object GetMemberValue(MemberExpression member) {
             var objectMember = Expression.Convert(member, typeof(object));
@@ -51,27 +51,23 @@ namespace KC.BaseDb
         }
 
         public class TimeSelectorSpan {
-            public DateTime StartTimeUtc = Util.InitDateTime;
-            public DateTime EndTimeUtc = Util.InitDateTime;
-            public DateTime StartTimeLocal = Util.InitDateTime;
-            public DateTime EndTimeLocal = Util.InitDateTime;
-            public TimeSpan TimeZoneOffsetStart;
-            public TimeSpan TimeZoneOffsetEnd;
+            public DateTimeOffset StartTime = Util.InitDateTime;
+            public DateTimeOffset EndTime = Util.InitDateTime;
             public string DateDiffSelector = "";
             public string UnitTime = "";
 
-            public DateTime GetDateUtcFromBarriersCrossed(int dateDiffBarriersCrossed) {
+            public DateTimeOffset GetDateUtcFromBarriersCrossed(int dateDiffBarriersCrossed) {
                 if (DateDiffSelector == "hh") {
-                    return StartTimeUtc.AddHours(dateDiffBarriersCrossed);
+                    return StartTime.AddHours(dateDiffBarriersCrossed);
                 }
                 else if (DateDiffSelector == "dd") {
-                    return StartTimeUtc.AddDays(dateDiffBarriersCrossed);
+                    return StartTime.AddDays(dateDiffBarriersCrossed);
                 }
                 else if (DateDiffSelector == "ww") {
-                    return StartTimeUtc.AddDays(dateDiffBarriersCrossed * 7);
+                    return StartTime.AddDays(dateDiffBarriersCrossed * 7);
                 }
                 else if (DateDiffSelector == "mm") {
-                    return Util.GetLocalStartOfUnitTimeInUtc(StartTimeUtc.AddDays(dateDiffBarriersCrossed * 30 + 15), "mm");
+                    return Util.GetLocalStartOfUnitTime(StartTime.AddDays(dateDiffBarriersCrossed * 30 + 15), "mm");
                 }
                 else {
                     throw new ArgumentException("Time Selector not supported: " + DateDiffSelector);
@@ -79,8 +75,8 @@ namespace KC.BaseDb
             }
         }
 
-        public static TimeSelectorSpan GetDateDiffSelector(DateTime startTimeUtc, DateTime endTimeUtc, string overrideDateDiffSelector = null) {
-            var totalTime = endTimeUtc - startTimeUtc;
+        public static TimeSelectorSpan GetDateDiffSelector(DateTimeOffset startTime, DateTimeOffset endTime, string overrideDateDiffSelector = null) {
+            var totalTime = endTime - startTime;
             TimeSelectorSpan span = null;
             if (overrideDateDiffSelector != null) {
                 switch (overrideDateDiffSelector) {
@@ -134,12 +130,8 @@ namespace KC.BaseDb
                     UnitTime = "Months",
                 };
             }
-            span.StartTimeUtc = Util.GetLocalStartOfUnitTimeInUtc(startTimeUtc, span.DateDiffSelector);
-            span.EndTimeUtc = Util.GetLocalEndOfUnitTimeInUtc(endTimeUtc, span.DateDiffSelector);
-            span.StartTimeLocal = span.StartTimeUtc.ToLocalTime();
-            span.EndTimeLocal = span.EndTimeUtc.ToLocalTime();
-            span.TimeZoneOffsetStart = (span.StartTimeLocal - span.StartTimeUtc);
-            span.TimeZoneOffsetEnd = (span.EndTimeLocal - span.EndTimeUtc);
+            span.StartTime = startTime;
+            span.EndTime = endTime;
             return span;
         }
 
@@ -147,20 +139,19 @@ namespace KC.BaseDb
         /// Convert the given date to local time, find the start of the hour/day/week/month/etc, convert this to UTC time, and return it.
         /// <returns></returns>
         /// </summary>
-        public static DateTime GetLocalStartOfUnitTimeInUtc(DateTime startTimeUtc, string dateDiffSelector) {
-            var localTime = startTimeUtc.ToLocalTime();
+        public static DateTimeOffset GetLocalStartOfUnitTime(DateTimeOffset startTime, string dateDiffSelector) {
             if (dateDiffSelector == "hh") {
-                return new DateTime(localTime.Year, localTime.Month, localTime.Day, localTime.Hour, 0, 0).ToUniversalTime();
+                return new DateTimeOffset(new DateTime(startTime.Year, startTime.Month, startTime.Day, startTime.Hour, 0, 0), startTime.Offset);
             }
             else if (dateDiffSelector == "dd") {
-                return new DateTime(localTime.Year, localTime.Month, localTime.Day, 0, 0, 0).ToUniversalTime();
+                return  new DateTimeOffset(new DateTime(startTime.Year, startTime.Month, startTime.Day, 0, 0, 0), startTime.Offset);
             }
-            var localDate = localTime.Date;
+            var localDate = startTime.Date;
             if (dateDiffSelector == "ww") {
-                return (localDate.AddDays(-(int)localDate.DayOfWeek)).ToUniversalTime();
+                return (localDate.AddDays(-(int)localDate.DayOfWeek));
             }
             else if (dateDiffSelector == "mm") {
-                return new DateTime(localTime.Year, localTime.Month, 1).ToUniversalTime();
+                return  new DateTimeOffset(new DateTime(startTime.Year, startTime.Month, 1), startTime.Offset);
             }
             else {
                 throw new ArgumentException("Time Selector not supported: " + dateDiffSelector);
@@ -171,8 +162,8 @@ namespace KC.BaseDb
         /// Convert the given date to local time, find the end of the hour/day/week/month/etc, convert this to UTC time, and return it.
         /// <returns></returns>
         /// </summary>
-        public static DateTime GetLocalEndOfUnitTimeInUtc(DateTime endTimeUtc, string dateDiffSelector) {
-            var start = Util.GetLocalStartOfUnitTimeInUtc(endTimeUtc, dateDiffSelector);
+        public static DateTimeOffset GetLocalEndOfUnitTime(DateTime endTime, string dateDiffSelector) {
+            var start = Util.GetLocalStartOfUnitTime(endTime, dateDiffSelector);
             if (dateDiffSelector == "hh") {
                 return start.AddHours(1);
             }
@@ -183,7 +174,7 @@ namespace KC.BaseDb
                 return start.AddDays(7);
             }
             else if (dateDiffSelector == "mm") {
-                return Util.GetLocalStartOfUnitTimeInUtc(start.AddDays(40), "mm");
+                return Util.GetLocalStartOfUnitTime(start.AddDays(40), "mm");
             }
             else {
                 throw new ArgumentException("Time Selector not supported: " + dateDiffSelector);
