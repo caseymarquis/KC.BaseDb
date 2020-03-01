@@ -1,9 +1,11 @@
 ﻿using KC.BaseDb.Internal;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace KC.BaseDb {
@@ -14,9 +16,8 @@ namespace KC.BaseDb {
         Other
     }
 
-    public abstract class BaseDbContext<SELF> : DbContext 
-            where SELF: BaseDbContext<SELF>, new()
-        {
+    public abstract class BaseDbContext<SELF> : DbContext
+            where SELF : BaseDbContext<SELF>, new() {
 
         public static BaseDbType BaseDbType => DbConnectionSettings.BaseDbType;
 
@@ -30,7 +31,7 @@ namespace KC.BaseDb {
 
         private static DbContextOptions getDbOptions(BaseDbType baseDbType, string connectionString, Action<DbContextOptionsBuilder<SELF>> doCustomSetup) {
             var builder = new DbContextOptionsBuilder<SELF>() {
-                
+
             };
             switch (baseDbType) {
                 case BaseDbType.Postgres:
@@ -86,5 +87,53 @@ namespace KC.BaseDb {
             });
         }
 
+        private static ReaderWriterLockSlim lockPubSubHandler = new ReaderWriterLockSlim();
+        private static IPubSubHandler pubSubHandler;
+        public static void StartSubscriptionLoop(Action<Exception> logException = null) {
+            lockPubSubHandler.EnterUpgradeableReadLock();
+            try {
+                if (pubSubHandler == null) {
+                    lockPubSubHandler.EnterWriteLock();
+                    try {
+                        if (BaseDbType == BaseDbType.Postgres) {
+                            pubSubHandler = new NpgPubSubHandler<SELF>();
+                        }
+                        else {
+                            throw new ApplicationException("Only Postgres Pub/Sub is currently supported.");
+                        }
+                    }
+                    finally {
+                        lockPubSubHandler.ExitWriteLock();
+                    }
+                }
+                pubSubHandler.StartSubscriptionLoop(logException);
+            }
+            finally {
+                lockPubSubHandler.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static void StopSubscriptionLoop() {
+            lockPubSubHandler.EnterReadLock();
+            try {
+                pubSubHandler?.StopSubscriptionLoop();
+            }
+            finally {
+                lockPubSubHandler.ExitReadLock();
+            }
+        }
+
+        public static IDisposable Subscribe(string topic, Action<string> callback) {
+            lockPubSubHandler.EnterReadLock();
+            try {
+                if (pubSubHandler == null) {
+                    throw new ApplicationException("You must call 'StartSubscriptionLoop' before calling Subscribe.");
+                }
+                return pubSubHandler.Subscribe(topic, callback);
+            }
+            finally {
+                lockPubSubHandler.ExitReadLock();
+            }
+        }
     }
 }
