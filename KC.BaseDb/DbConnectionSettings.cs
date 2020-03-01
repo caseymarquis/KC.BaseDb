@@ -96,7 +96,7 @@ namespace KC.BaseDb {
                         var userPass = uri.UserInfo.Split(':');
                         //If the environment variable was in the style of heroku's user:pass@server:port/database, then interpret it:
                         //Also require SSL, but assume it's a self signed cert, as this is what we encounter in Heroku.
-                        //TODO: The wait this works if pretty frail. I'm not that worried as this is just a personal library, but
+                        //TODO: The way this works is pretty frail. I'm not that worried as this is just a personal library, but
                         //this still feels a little hokey the way this gets passed in. I still want this library to handle it,
                         //but it seems like there should be a more explicit way of passing a request for this in perhaps?
                         cs = $"Server={uri.Host};Port={uri.Port};Database={uri.LocalPath.Trim('/')};Userid={userPass[0]};Password={userPass[1]};SslMode=Require;TrustServerCertificate=true;";
