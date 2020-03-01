@@ -40,7 +40,9 @@ namespace KC.BaseDb.Internal {
                         }
                         while (shouldRun()) {
                             try {
-                                subscribedChannels = new HashSet<string>();
+                                lock (lockChannels) {
+                                    subscribedChannels = new HashSet<string>();
+                                }
                                 using (var db = new DBCONTEXT()) {
                                     var connection = (NpgsqlConnection)db.Database.GetDbConnection();
                                     connection.Open();
@@ -51,8 +53,6 @@ namespace KC.BaseDb.Internal {
                                             try {
                                                 if (subscriptions.TryGetValue(e.Channel, out var callbacks)) {
                                                     callbackList = callbacks.Values.ToList();
-                                                    foreach (var callback in callbacks.Values) {
-                                                    }
                                                 }
                                             }
                                             finally {
@@ -87,12 +87,19 @@ namespace KC.BaseDb.Internal {
                                             //Because we escape the channel, we don't need to use parameters to avoid injection:
                                             var removeCmd = string.Join(" ", channelsToRemove.Select(x => $"UNLISTEN {x};"));
                                             var addCmd = string.Join(" ", channelsToAdd.Select(x => $"LISTEN {x};"));
+                                            var transactionSuccess = false;
                                             db.Database.BeginTransaction();
                                             try {
                                                 db.Database.ExecuteSqlRaw(removeCmd + addCmd);
+                                                transactionSuccess = true;
                                             }
                                             finally {
-                                                db.Database.CommitTransaction();
+                                                if (transactionSuccess) {
+                                                    db.Database.CommitTransaction();
+                                                }
+                                                else {
+                                                    db.Database.RollbackTransaction();
+                                                }
                                             }
                                             lock (lockChannels) {
                                                 foreach (var channelToRemove in channelsToRemove) {
@@ -106,7 +113,7 @@ namespace KC.BaseDb.Internal {
 
                                         if ((DateTimeOffset.Now - lastKeepAlive).TotalSeconds > 30) { //TODO: Setting for keepalive timeout
                                             lastKeepAlive = DateTimeOffset.Now;
-                                            db.Database.ExecuteSqlRaw("SELECT NULL");
+                                            db.Database.ExecuteSqlRaw("SELECT NULL"); //If the connection has broken, this will throw an error.
                                         }
                                         connection.Wait(500); //TODO: Should this timeout be adjustable? It's the max rate you can subscribe to something new.
                                     }
