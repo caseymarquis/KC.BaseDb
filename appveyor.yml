@@ -35,3 +35,5 @@ deploy:
    api_key:
      secure: RqN8h1cc9RDQzU+gkhf0YclC7prs0yhULZ4grxJUuPE3mfR7ho76wXt2eGXjcAbk
    skip_symbols: true
+environment:
+  isappveyor: true

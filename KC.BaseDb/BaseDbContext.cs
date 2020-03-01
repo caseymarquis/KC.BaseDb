@@ -135,5 +135,29 @@ namespace KC.BaseDb {
                 lockPubSubHandler.ExitReadLock();
             }
         }
+
+        public static async Task Notify(string topic, string payload = null) {
+            await Notify(new Notification[] {
+                new Notification{
+                    Topic = topic,
+                    Payload = payload,
+                }
+            });
+        }
+
+        public static async Task Notify(IEnumerable<Notification> notifications) {
+            IPubSubHandler psh;
+            lockPubSubHandler.EnterReadLock();
+            try {
+                if (pubSubHandler == null) {
+                    throw new ApplicationException("You must call 'StartSubscriptionLoop' before calling Notify.");
+                }
+                psh = pubSubHandler;
+            }
+            finally {
+                lockPubSubHandler.ExitReadLock();
+            }
+            await pubSubHandler.Notify(notifications);
+        }
     }
 }
