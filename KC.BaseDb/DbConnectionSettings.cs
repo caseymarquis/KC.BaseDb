@@ -104,8 +104,11 @@ namespace KC.BaseDb {
                 }
 
                 if (success == false) {
-                    new FileInfo(connectionStringFilePath).Directory.Create();
-                    if (!File.Exists(connectionStringFilePath)) {
+                    var shouldWriteToFile = connectionStringFilePath != null;
+                    if (shouldWriteToFile) {
+                        new FileInfo(connectionStringFilePath).Directory.Create();
+                    }
+                    if (!shouldWriteToFile || !File.Exists(connectionStringFilePath)) {
                         switch (baseDbType) {
                             case BaseDbType.Postgres:
                                 cs = hardCodedConnectionString ?? $"UserID=euler;Password=3.14159265358979323846264338327;Host=localhost;Port=5432;Database={appName};";
@@ -120,7 +123,9 @@ namespace KC.BaseDb {
                                 cs = hardCodedConnectionString ?? "Put a connection string in this file as the first line!";
                                 break;
                         }
-                        File.WriteAllText(connectionStringFilePath, cs);
+                        if (shouldWriteToFile) {
+                            File.WriteAllText(connectionStringFilePath, cs);
+                        }
                     }
                     else {
                         cs = getConnectionStringFromFile(connectionStringFilePath);
