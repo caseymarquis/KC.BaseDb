@@ -4,6 +4,7 @@ using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -87,36 +88,46 @@ namespace KC.BaseDb {
             });
         }
 
+        public static bool CanStartPubSubLoop() {
+            return BaseDbType == BaseDbType.Postgres;
+        }
+
         private static ReaderWriterLockSlim lockPubSubHandler = new ReaderWriterLockSlim();
         private static IPubSubHandler pubSubHandler;
-        public static void StartSubscriptionLoop(Action<Exception> logException = null) {
+        public static void StartPubSubLoop(Action<Exception> logException = null) {
             lockPubSubHandler.EnterUpgradeableReadLock();
             try {
                 if (pubSubHandler == null) {
                     lockPubSubHandler.EnterWriteLock();
                     try {
-                        if (BaseDbType == BaseDbType.Postgres) {
-                            pubSubHandler = new NpgPubSubHandler<SELF>();
+                        if (CanStartPubSubLoop()) {
+                            switch (BaseDbType) {
+                                case BaseDbType.Postgres:
+                                    pubSubHandler = new NpgPubSubHandler<SELF>();
+                                    break;
+                                default:
+                                    throw new ApplicationException($"BaseDb core logic error. PubSub started with database type {BaseDbType.ToString("g")}");
+                            }
                         }
                         else {
-                            throw new ApplicationException("Only Postgres Pub/Sub is currently supported.");
+                            throw new ApplicationException($"Database type {BaseDbType.ToString("g")} does not support PubSub.");
                         }
                     }
                     finally {
                         lockPubSubHandler.ExitWriteLock();
                     }
                 }
-                pubSubHandler.StartSubscriptionLoop(logException);
+                pubSubHandler.StartPubSubLoop(logException);
             }
             finally {
                 lockPubSubHandler.ExitUpgradeableReadLock();
             }
         }
 
-        public static void StopSubscriptionLoop() {
+        public static void StopPubSubLoop() {
             lockPubSubHandler.EnterReadLock();
             try {
-                pubSubHandler?.StopSubscriptionLoop();
+                pubSubHandler?.StopPubSubLoop();
             }
             finally {
                 lockPubSubHandler.ExitReadLock();
@@ -136,7 +147,7 @@ namespace KC.BaseDb {
             }
         }
 
-        public static async Task Notify(string topic, string payload = null) {
+        public static async Task Publish(string topic, string payload = null) {
             await Notify(new Notification[] {
                 new Notification{
                     Topic = topic,
@@ -157,7 +168,7 @@ namespace KC.BaseDb {
             finally {
                 lockPubSubHandler.ExitReadLock();
             }
-            await pubSubHandler.Notify(notifications);
+            await pubSubHandler.Publish(notifications);
         }
     }
 }

@@ -19,11 +19,11 @@ namespace Test.BaseDb
                 await db.Database.ExecuteSqlRawAsync("SELECT NULL");
             }).Wait();
 
-            NpgContext.StartSubscriptionLoop(ex => {
+            NpgContext.StartPubSubLoop(ex => {
                 Assert.True(false, ex.Message);
             });
 
-            await NpgContext.Notify("simpleTopic", "simplePayload");
+            await NpgContext.Publish("simpleTopic", "simplePayload");
 
             var lockCount = new object();
             var count = 0;
@@ -41,7 +41,7 @@ namespace Test.BaseDb
             var sentCount = 0;
             for (int i = 1; i < 10; i++) {
                 await Task.Delay(100);
-                await NpgContext.Notify(topic, i.ToString());
+                await NpgContext.Publish(topic, i.ToString());
                 sentCount += i;
             }
 

@@ -27,7 +27,7 @@ namespace KC.BaseDb.Internal {
         private object lockSubscriptionLoopSequence = new object();
         private int subscriptionLoopSequence;
         private int lastSubscriptionLoopSequence = -1;
-        public void StartSubscriptionLoop(Action<Exception> logException = null) {
+        public void StartPubSubLoop(Action<Exception> logException = null) {
             lock (lockSubscriptionLoopSequence) {
                 if (subscriptionLoopSequence == lastSubscriptionLoopSequence) {
                     return;
@@ -138,7 +138,7 @@ namespace KC.BaseDb.Internal {
             }
         }
 
-        public void StopSubscriptionLoop() {
+        public void StopPubSubLoop() {
             lock (lockSubscriptionLoopSequence) {
                 subscriptionLoopSequence++;
             }
@@ -200,7 +200,7 @@ namespace KC.BaseDb.Internal {
             }
         }
 
-        public async Task Notify(IEnumerable<Notification> notifications) {
+        public async Task Publish(IEnumerable<Notification> notifications) {
             if (notifications == null || !notifications.Any()) {
                 return;
             }

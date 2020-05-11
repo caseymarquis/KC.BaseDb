@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace KC.BaseDb.Internal {
     interface IPubSubHandler {
-        void StartSubscriptionLoop(Action<Exception> logException = null);
-        void StopSubscriptionLoop();
-        Task Notify(IEnumerable<Notification> notifications);
+        void StartPubSubLoop(Action<Exception> logException = null);
+        void StopPubSubLoop();
+        Task Publish(IEnumerable<Notification> notifications);
         IDisposable Subscribe(string topic, Action<string> callback);
     }
 }
