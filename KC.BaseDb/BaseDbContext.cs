@@ -88,9 +88,7 @@ namespace KC.BaseDb {
             });
         }
 
-        public static bool CanStartPubSubLoop() {
-            return BaseDbType == BaseDbType.Postgres;
-        }
+        public static bool CanStartPubSubLoop => BaseDbType == BaseDbType.Postgres;
 
         private static ReaderWriterLockSlim lockPubSubHandler = new ReaderWriterLockSlim();
         private static IPubSubHandler pubSubHandler;
@@ -100,7 +98,7 @@ namespace KC.BaseDb {
                 if (pubSubHandler == null) {
                     lockPubSubHandler.EnterWriteLock();
                     try {
-                        if (CanStartPubSubLoop()) {
+                        if (CanStartPubSubLoop) {
                             switch (BaseDbType) {
                                 case BaseDbType.Postgres:
                                     pubSubHandler = new NpgPubSubHandler<SELF>();
