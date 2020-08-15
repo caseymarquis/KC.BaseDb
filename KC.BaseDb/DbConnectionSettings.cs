@@ -99,7 +99,34 @@ namespace KC.BaseDb {
                         //TODO: The way this works is pretty frail. I'm not that worried as this is just a personal library, but
                         //this still feels a little hokey the way this gets passed in. I still want this library to handle it,
                         //but it seems like there should be a more explicit way of passing a request for this in perhaps?
-                        cs = $"Server={uri.Host};Port={uri.Port};Database={uri.LocalPath.Trim('/')};Userid={userPass[0]};Password={userPass[1]};SslMode=Require;TrustServerCertificate=true;";
+                        cs = $"Server={uri.Host};Port={uri.Port};Database={uri.LocalPath.Trim('/')};Userid={userPass[0]};Password={userPass[1]};";
+                        var queryPairs = (uri.Query ?? "")
+                            .Trim('?')
+                            .Split('&')
+                            .Where(x => x.Contains("="))
+                            .Select(x => x.Split('='))
+                            .Select(x => new {
+                                key = x[0],
+                                value = x[1],
+                            })
+                            .Where(x => !string.IsNullOrWhiteSpace(x.key) && !string.IsNullOrWhiteSpace(x.value))
+                            .ToList();
+
+                        setDefault("SslMode", "Require");
+                        setDefault("TrustServerCertificate", "true");
+
+                        foreach (var queryPair in queryPairs) {
+                            cs += $"{queryPair.key}={queryPair.value};";
+                        }
+
+                        void setDefault(string key, string value) {
+                            if (!queryPairs.Any(x => string.Compare(key, x.key, true) == 0)) {
+                                queryPairs.Add(new {
+                                    key,
+                                    value,
+                                });
+                            }
+                        }
                     }
                 }
 
